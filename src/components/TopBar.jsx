@@ -1,11 +1,17 @@
 import { useAuth } from "../context/AuthContext";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useLocation } from "react-router-dom";
 import { signOut } from "firebase/auth";
 import { auth } from "../services/firebase";
+import { getDisplayName } from "../utils/getDisplayName";
+
+const navLinks = [
+  { label: "Dashboard", path: "/dashboard" },
+];
 
 export default function TopBar() {
   const { user } = useAuth();
   const navigate = useNavigate();
+  const location = useLocation();
 
   const handleLogout = async () => {
     await signOut(auth);
@@ -13,42 +19,40 @@ export default function TopBar() {
   };
 
   return (
-    <div style={{
-      width: '100%',
-      background: '#1e293b',
-      color: 'white',
-      padding: '12px 0',
-      display: 'flex',
-      alignItems: 'center',
-      justifyContent: 'space-between',
-      fontWeight: 'bold',
-      fontSize: '1.2rem',
-      letterSpacing: '2px',
-      boxShadow: '0 2px 8px rgba(0,0,0,0.04)',
-      zIndex: 1000,
-      position: 'relative',
-      minHeight: 56
+    <nav style={{
+      position: "sticky", top: 0, zIndex: 100,
+      padding: "0 clamp(20px, 4vw, 48px)",
+      height: 60,
+      display: "flex", alignItems: "center", justifyContent: "space-between",
+      background: "rgba(7, 7, 17, 0.75)",
+      backdropFilter: "blur(20px)",
+      WebkitBackdropFilter: "blur(20px)",
+      borderBottom: "1px solid var(--glass-border)",
     }}>
-      <div style={{ marginLeft: 24 }}>VivaAI</div>
+      {/* Logo */}
+      <span
+        style={{ fontWeight: 700, fontSize: "1.1rem", letterSpacing: "0.04em", cursor: "pointer" }}
+        onClick={() => navigate("/")}
+      >
+        <span className="gradient-text">Viva</span>
+        <span style={{ color: "var(--text)" }}>AI</span>
+      </span>
+
+      {/* Right side */}
       {user && (
-        <button
-          onClick={handleLogout}
-          style={{
-            marginRight: 24,
-            background: '#ef4444',
-            color: 'white',
-            border: 'none',
-            borderRadius: 6,
-            padding: '8px 18px',
-            fontWeight: 500,
-            fontSize: '1rem',
-            cursor: 'pointer',
-            transition: 'background 0.2s',
-          }}
-        >
-          Logout
-        </button>
+        <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+          <span style={{ fontSize: "0.82rem", color: "var(--text-muted)", marginRight: 8 }}>
+            {getDisplayName(user)}
+          </span>
+          <button
+            onClick={handleLogout}
+            className="btn-ghost"
+            style={{ padding: "6px 16px", fontSize: "0.85rem" }}
+          >
+            Log out
+          </button>
+        </div>
       )}
-    </div>
+    </nav>
   );
 }
