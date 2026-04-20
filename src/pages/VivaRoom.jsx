@@ -1,50 +1,35 @@
 import { useLocation, useNavigate } from "react-router-dom";
 import { useEffect, useState } from "react";
+import { generateViva } from "../services/ai.Service";
+import QuestionCard from "../components/QuestionCard";
+import AnswerInput from "../components/AnswerInput";
 
 export default function VivaRoom() {
   const location = useLocation();
   const navigate = useNavigate();
-
   const topic = location.state?.topic;
 
   const [questions, setQuestions] = useState([]);
   const [currentIndex, setCurrentIndex] = useState(0);
   const [answers, setAnswers] = useState([]);
   const [currentAnswer, setCurrentAnswer] = useState("");
-
-  // 🔹 Static fallback questions
-  const questionBank = {
-    "React Hooks": [
-      "What is useState?",
-      "What is useEffect?",
-      "Difference between state and props?",
-    ],
-    default: [
-      "Explain the topic briefly",
-      "What are key concepts?",
-      "Give a real-world example",
-    ],
-  };
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    if (!topic) {
-      navigate("/dashboard");
-      return;
-    }
+    if (!topic) { navigate("/dashboard"); return; }
 
-    // pick questions
-    const selected =
-      questionBank[topic] || questionBank["default"];
+    const loadQuestions = async () => {
+      setLoading(true);
+      const data = await generateViva(topic);
+      setQuestions(data);
+      setLoading(false);
+    };
 
-    setQuestions(selected);
+    loadQuestions();
   }, [topic]);
 
   const handleNext = () => {
-    if (!currentAnswer.trim()) {
-      alert("Please enter an answer");
-      return;
-    }
-
+    if (!currentAnswer.trim()) return;
     const updatedAnswers = [...answers, currentAnswer];
     setAnswers(updatedAnswers);
     setCurrentAnswer("");
@@ -52,60 +37,53 @@ export default function VivaRoom() {
     if (currentIndex + 1 < questions.length) {
       setCurrentIndex(currentIndex + 1);
     } else {
-      // navigate to result page
-      navigate("/result", {
-        state: {
-          questions,
-          answers: updatedAnswers,
-          topic,
-        },
-      });
+      navigate("/result", { state: { questions, answers: updatedAnswers, topic } });
     }
   };
 
-  if (questions.length === 0) {
-    return <p className="text-center mt-10">Loading questions...</p>;
+  if (loading) {
+    return (
+      <div style={{
+        minHeight: "calc(100vh - 60px)",
+        display: "flex", flexDirection: "column",
+        alignItems: "center", justifyContent: "center",
+        gap: 16,
+      }}>
+        {/* Spinner */}
+        <div style={{
+          width: 44, height: 44,
+          border: "3px solid var(--glass-border)",
+          borderTop: "3px solid var(--accent)",
+          borderRadius: "50%",
+          animation: "spin 0.85s linear infinite",
+        }} />
+        <p style={{ color: "var(--text-muted)", fontSize: "0.95rem" }}>
+          Generating questions for <strong style={{ color: "var(--text)" }}>{topic}</strong>…
+        </p>
+        <style>{`@keyframes spin { to { transform: rotate(360deg); } }`}</style>
+      </div>
+    );
   }
 
   return (
-    <div className="min-h-screen bg-gray-100 flex items-center justify-center px-4">
-
-      <div className="bg-white p-8 rounded-2xl shadow-lg w-full max-w-xl">
-
-        {/* Header */}
-        <h2 className="text-xl font-semibold mb-2">
-          Viva on: {topic}
-        </h2>
-
-        <p className="text-sm text-gray-500 mb-6">
-          Question {currentIndex + 1} of {questions.length}
-        </p>
-
-        {/* Question */}
-        <div className="mb-4">
-          <p className="text-lg font-medium">
-            {questions[currentIndex]}
-          </p>
-        </div>
-
-        {/* Answer Input */}
-        <textarea
+    <div style={{
+      minHeight: "calc(100vh - 60px)",
+      display: "flex", alignItems: "center", justifyContent: "center",
+      padding: "40px clamp(20px, 5vw, 48px)",
+    }}>
+      <div className="glass-elevated fade-up" style={{ width: "100%", maxWidth: 580, padding: "36px 36px" }}>
+        <QuestionCard
+          question={questions[currentIndex].question}
+          currentIndex={currentIndex}
+          total={questions.length}
+          topic={topic}
+        />
+        <AnswerInput
           value={currentAnswer}
           onChange={(e) => setCurrentAnswer(e.target.value)}
-          placeholder="Type your answer here..."
-          className="w-full border rounded-lg p-3 h-32 focus:outline-none focus:ring-2 focus:ring-blue-500 mb-4"
+          onSubmit={handleNext}
+          isLast={currentIndex + 1 === questions.length}
         />
-
-        {/* Next Button */}
-        <button
-          onClick={handleNext}
-          className="w-full bg-blue-600 text-white py-3 rounded-lg hover:bg-blue-700 transition"
-        >
-          {currentIndex + 1 === questions.length
-            ? "Finish Viva"
-            : "Next Question"}
-        </button>
-
       </div>
     </div>
   );
