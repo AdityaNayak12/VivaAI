@@ -1,5 +1,5 @@
 import { useLocation, useNavigate } from "react-router-dom";
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback } from "react";
 import { generateViva } from "../services/ai.Service";
 import QuestionCard from "../components/QuestionCard";
 import AnswerInput from "../components/AnswerInput";
@@ -28,7 +28,7 @@ export default function VivaRoom() {
     loadQuestions();
   }, [topic]);
 
-  const handleNext = () => {
+  const handleNext = useCallback(() => {
     if (!currentAnswer.trim()) return;
     const updatedAnswers = [...answers, currentAnswer];
     setAnswers(updatedAnswers);
@@ -39,7 +39,7 @@ export default function VivaRoom() {
     } else {
       navigate("/result", { state: { questions, answers: updatedAnswers, topic } });
     }
-  };
+  }, [currentAnswer, answers, currentIndex, questions, topic, navigate]);
 
   if (loading) {
     return (

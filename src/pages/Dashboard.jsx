@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 import { fetchUserSessions, computeStats } from "../services/dbService";
@@ -25,16 +25,16 @@ export default function Dashboard() {
     if (user) loadStats();
   }, [user]);
 
-  const handleStart = () => {
-    if (!topic.trim()) return;
-    navigate("/viva", { state: { topic } });
-  };
-
-  const statCards = [
+  const statCards = useMemo(() => [
     { label: "Total Vivas", value: loadingStats ? "…" : stats.totalVivas, icon: "🎓" },
     { label: "Avg Score",   value: loadingStats ? "…" : stats.avgScore,   icon: "📊" },
     { label: "Last Topic",  value: loadingStats ? "…" : stats.lastTopic,  icon: "📝", small: true },
-  ];
+  ], [loadingStats, stats]);
+
+  const handleStart = useCallback(() => {
+    if (!topic.trim()) return;
+    navigate("/viva", { state: { topic } });
+  }, [topic, navigate]);
 
   return (
     <div style={{ minHeight: "calc(100vh - 60px)", padding: "48px clamp(20px, 5vw, 60px)" }}>

@@ -1,5 +1,5 @@
 import { useLocation, useNavigate } from "react-router-dom";
-import { useEffect, useState } from "react";
+import { useEffect, useState, useMemo } from "react";
 import { useAuth } from "../context/AuthContext";
 import { evaluateAll } from "../utils/evaluate";
 import { saveVivaSession } from "../services/dbService";
@@ -26,6 +26,7 @@ function ScoreBar({ score, max }) {
     </div>
   );
 }
+const MemoizedScoreBar = React.memo(ScoreBar);
 
 export default function Result() {
   const location = useLocation();
@@ -35,7 +36,7 @@ export default function Result() {
   const { questions = [], answers = [], topic } = location.state || {};
   const [scores, setScores] = useState([]);
   const [totalScore, setTotalScore] = useState(0);
-  const maxTotal = questions.length > 0 ? questions.reduce((s, q) => s + q.keywords.length + 1, 0) : 0;
+  const maxTotal = useMemo(() => questions.length > 0 ? questions.reduce((s, q) => s + q.keywords.length + 1, 0) : 0, [questions]);
 
   useEffect(() => {
     if (!questions.length || !answers.length) return;
@@ -118,7 +119,7 @@ export default function Result() {
                 <p style={{ color: "var(--text-muted)", fontSize: "0.88rem", lineHeight: 1.6, fontStyle: "italic" }}>
                   "{answers[i]}"
                 </p>
-                <ScoreBar score={scores[i] || 0} max={maxQ} />
+                <MemoizedScoreBar score={scores[i] || 0} max={maxQ} />
               </div>
             );
           })}
