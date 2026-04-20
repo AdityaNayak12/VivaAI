@@ -1,88 +1,108 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
-import { signOut } from "firebase/auth";
-import { auth } from "../services/firebase";
+import { fetchUserSessions, computeStats } from "../services/dbService";
+import { getDisplayName } from "../utils/getDisplayName";
 
 export default function Dashboard() {
   const [topic, setTopic] = useState("");
   const navigate = useNavigate();
   const { user } = useAuth();
+  const [stats, setStats] = useState({ totalVivas: 0, avgScore: "—", lastTopic: "—" });
+  const [loadingStats, setLoadingStats] = useState(true);
 
-  //(replace later with Firestore)
-  const stats = {
-    totalVivas: 5,
-    avgScore: 7.8,
-    lastTopic: "React Hooks",
-  };
+  useEffect(() => {
+    const loadStats = async () => {
+      try {
+        const sessions = await fetchUserSessions(user.uid);
+        setStats(computeStats(sessions));
+      } catch (err) {
+        console.error("Error fetching stats:", err);
+      } finally {
+        setLoadingStats(false);
+      }
+    };
+    if (user) loadStats();
+  }, [user]);
 
   const handleStart = () => {
-    if (!topic.trim()) {
-      alert("Please enter a topic");
-      return;
-    }
-
+    if (!topic.trim()) return;
     navigate("/viva", { state: { topic } });
   };
 
-  const handleLogout = async () => {
-    await signOut(auth);
-    navigate("/login");
-  };
+  const statCards = [
+    { label: "Total Vivas", value: loadingStats ? "…" : stats.totalVivas, icon: "🎓" },
+    { label: "Avg Score",   value: loadingStats ? "…" : stats.avgScore,   icon: "📊" },
+    { label: "Last Topic",  value: loadingStats ? "…" : stats.lastTopic,  icon: "📝", small: true },
+  ];
 
   return (
-    <div className="min-h-screen bg-gray-100 px-4 py-8">
+    <div style={{ minHeight: "calc(100vh - 60px)", padding: "48px clamp(20px, 5vw, 60px)" }}>
+      <div style={{ maxWidth: 900, margin: "0 auto" }}>
 
-      {/* Welcome */}
-      <div className="text-center mb-8">
-        <h1 className="text-2xl font-semibold">Welcome 👋</h1>
-        <p className="text-gray-600">{user?.email}</p>
-      </div>
-
-      {/* 🔹 Stats Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6 max-w-4xl mx-auto mb-10">
-        
-        <div className="bg-white p-6 rounded-xl shadow text-center">
-          <p className="text-gray-500 text-sm">Total Vivas</p>
-          <h2 className="text-2xl font-bold">{stats.totalVivas}</h2>
+        {/* Header */}
+        <div className="fade-up-1" style={{ marginBottom: 44 }}>
+          <h1 style={{ fontSize: "clamp(1.6rem, 3vw, 2.2rem)", fontWeight: 700, letterSpacing: "-0.02em", marginBottom: 6 }}>
+            Good to see you, {getDisplayName(user)} 👋
+          </h1>
         </div>
 
-        <div className="bg-white p-6 rounded-xl shadow text-center">
-          <p className="text-gray-500 text-sm">Average Score</p>
-          <h2 className="text-2xl font-bold">{stats.avgScore}</h2>
+        {/* Stats */}
+        <div className="fade-up-2" style={{
+          display: "grid",
+          gridTemplateColumns: "repeat(auto-fit, minmax(180px, 1fr))",
+          gap: 16,
+          marginBottom: 44,
+        }}>
+          {statCards.map((s, i) => (
+            <div key={i} className="glass card-hover" style={{ padding: "22px 24px" }}>
+              <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 10 }}>
+                <span>{s.icon}</span>
+                <span style={{ fontSize: "0.78rem", color: "var(--text-muted)", fontWeight: 500, letterSpacing: "0.04em" }}>
+                  {s.label.toUpperCase()}
+                </span>
+              </div>
+              <div style={{
+                fontSize: s.small ? "1.1rem" : "2rem",
+                fontWeight: 700,
+                color: "var(--text)",
+                lineHeight: 1.2,
+                wordBreak: "break-word",
+              }}>
+                {s.value}
+              </div>
+            </div>
+          ))}
         </div>
 
-        <div className="bg-white p-6 rounded-xl shadow text-center">
-          <p className="text-gray-500 text-sm">Last Topic</p>
-          <h2 className="text-lg font-medium">{stats.lastTopic}</h2>
+        {/* Start card */}
+        <div className="glass-elevated fade-up-3" style={{ padding: "40px 36px", maxWidth: 520, margin: "0 auto" }}>
+          <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 6 }}>
+            <span className="glow-dot" />
+            <h2 style={{ fontSize: "1.15rem", fontWeight: 600 }}>Start a new viva</h2>
+          </div>
+          <p style={{ color: "var(--text-muted)", fontSize: "0.88rem", marginBottom: 24 }}>
+            Enter any topic and the AI will generate 3 targeted questions for you.
+          </p>
+          <input
+            type="text"
+            placeholder="e.g. React Hooks, Thermodynamics, DBMS…"
+            value={topic}
+            onChange={(e) => setTopic(e.target.value)}
+            onKeyDown={(e) => e.key === "Enter" && handleStart()}
+            style={{ marginBottom: 16 }}
+          />
+          <button
+            onClick={handleStart}
+            disabled={!topic.trim()}
+            className="btn-primary"
+            style={{ width: "100%", padding: "13px" }}
+          >
+            Generate questions →
+          </button>
         </div>
 
       </div>
-
-      {/* 🔹 Main Card */}
-      <div className="bg-white p-8 rounded-2xl shadow-lg max-w-lg mx-auto text-center">
-
-        <h2 className="text-xl font-semibold mb-4">
-          Start a New Viva
-        </h2>
-
-        <input
-          type="text"
-          placeholder="Enter topic (e.g., React Hooks)"
-          value={topic}
-          onChange={(e) => setTopic(e.target.value)}
-          className="w-full px-4 py-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 mb-4"
-        />
-
-        <button
-          onClick={handleStart}
-          className="w-full bg-blue-600 text-white py-3 rounded-lg hover:bg-blue-700 transition font-medium"
-        >
-          Start Viva
-        </button>
-
-      </div>
-
     </div>
   );
 }
