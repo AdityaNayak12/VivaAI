@@ -1,1 +1,215 @@
 @import "tailwindcss";
+
+/* ─── Google Font ─────────────────────────────────────────── */
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap');
+
+/* ─── Design Tokens ───────────────────────────────────────── */
+:root {
+  /* Background layers */
+  --bg-base:        #070711;
+  --bg-surface:     rgba(255, 255, 255, 0.04);
+  --bg-surface-hover: rgba(255, 255, 255, 0.07);
+  --bg-elevated:    rgba(255, 255, 255, 0.08);
+
+  /* Glass */
+  --glass-border:   rgba(255, 255, 255, 0.10);
+  --glass-shadow:   0 8px 32px rgba(0, 0, 0, 0.45);
+  --glass-blur:     blur(20px);
+
+  /* Brand */
+  --accent:         #7c6fff;
+  --accent-2:       #a78bfa;
+  --accent-glow:    rgba(124, 111, 255, 0.30);
+  --accent-dim:     rgba(124, 111, 255, 0.12);
+  --gradient:       linear-gradient(135deg, #7c6fff 0%, #a78bfa 100%);
+
+  /* Text */
+  --text:           #f0f0fa;
+  --text-muted:     rgba(240, 240, 250, 0.50);
+  --text-subtle:    rgba(240, 240, 250, 0.30);
+
+  /* Misc */
+  --radius:         14px;
+  --radius-sm:      8px;
+  --transition:     0.2s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* ─── Reset & Base ────────────────────────────────────────── */
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+html { scroll-behavior: smooth; }
+
+body {
+  background: var(--bg-base);
+  color: var(--text);
+  font-family: 'Inter', 'Segoe UI', Arial, sans-serif;
+  min-height: 100vh;
+  -webkit-font-smoothing: antialiased;
+  overflow-x: hidden;
+}
+
+/* ─── Ambient Background ──────────────────────────────────── */
+body::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  background:
+    radial-gradient(ellipse 80% 60% at 20% -10%, rgba(124, 111, 255, 0.14) 0%, transparent 60%),
+    radial-gradient(ellipse 70% 50% at 80% 110%, rgba(167, 139, 250, 0.10) 0%, transparent 60%);
+  pointer-events: none;
+  z-index: 0;
+}
+
+#root { position: relative; z-index: 1; }
+
+/* ─── Glass Surface ───────────────────────────────────────── */
+.glass {
+  background: var(--bg-surface);
+  backdrop-filter: var(--glass-blur);
+  -webkit-backdrop-filter: var(--glass-blur);
+  border: 1px solid var(--glass-border);
+  border-radius: var(--radius);
+  box-shadow: var(--glass-shadow);
+}
+
+.glass-elevated {
+  background: var(--bg-elevated);
+  backdrop-filter: var(--glass-blur);
+  -webkit-backdrop-filter: var(--glass-blur);
+  border: 1px solid rgba(255, 255, 255, 0.13);
+  border-radius: var(--radius);
+  box-shadow: 0 16px 48px rgba(0, 0, 0, 0.5);
+}
+
+/* ─── Buttons ─────────────────────────────────────────────── */
+.btn-primary {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--gradient);
+  color: #fff;
+  border: none;
+  border-radius: var(--radius-sm);
+  padding: 12px 28px;
+  font-weight: 600;
+  font-size: 0.95rem;
+  letter-spacing: 0.01em;
+  cursor: pointer;
+  transition: opacity var(--transition), box-shadow var(--transition), transform var(--transition);
+  box-shadow: 0 4px 18px var(--accent-glow);
+  white-space: nowrap;
+}
+.btn-primary:hover {
+  opacity: 0.88;
+  box-shadow: 0 6px 26px var(--accent-glow);
+  transform: translateY(-1px);
+}
+.btn-primary:active { transform: translateY(0); }
+.btn-primary:disabled { opacity: 0.45; cursor: not-allowed; transform: none; }
+
+.btn-ghost {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: transparent;
+  color: var(--text-muted);
+  border: 1px solid var(--glass-border);
+  border-radius: var(--radius-sm);
+  padding: 12px 28px;
+  font-weight: 500;
+  font-size: 0.95rem;
+  cursor: pointer;
+  transition: background var(--transition), color var(--transition), border-color var(--transition), transform var(--transition);
+  white-space: nowrap;
+}
+.btn-ghost:hover {
+  background: var(--bg-surface-hover);
+  color: var(--text);
+  border-color: rgba(255, 255, 255, 0.2);
+  transform: translateY(-1px);
+}
+.btn-ghost:disabled { opacity: 0.4; cursor: not-allowed; transform: none; }
+
+/* Legacy aliases for backwards compat */
+.btn-secondary { @extend .btn-ghost; }
+
+/* ─── Inputs ──────────────────────────────────────────────── */
+input, textarea {
+  background: rgba(255, 255, 255, 0.05);
+  color: var(--text);
+  border: 1px solid var(--glass-border);
+  border-radius: var(--radius-sm);
+  padding: 12px 16px;
+  outline: none;
+  font-family: inherit;
+  font-size: 0.95rem;
+  transition: border-color var(--transition), box-shadow var(--transition), background var(--transition);
+  width: 100%;
+}
+input::placeholder, textarea::placeholder { color: var(--text-subtle); }
+input:focus, textarea:focus {
+  border-color: var(--accent);
+  background: rgba(255, 255, 255, 0.07);
+  box-shadow: 0 0 0 3px var(--accent-dim);
+}
+
+/* ─── Gradient Text ─────────────────────────────────────────*/
+.gradient-text {
+  background: var(--gradient);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+/* ─── Glow Dot ────────────────────────────────────────────── */
+.glow-dot {
+  display: inline-block;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--accent);
+  box-shadow: 0 0 10px var(--accent), 0 0 20px var(--accent-glow);
+  animation: pulse 2.4s ease-in-out infinite;
+}
+
+@keyframes pulse {
+  0%, 100% { opacity: 1; transform: scale(1); }
+  50%       { opacity: 0.6; transform: scale(0.85); }
+}
+
+/* ─── Fade-in animation ───────────────────────────────────── */
+@keyframes fadeUp {
+  from { opacity: 0; transform: translateY(20px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+.fade-up { animation: fadeUp 0.55s ease forwards; }
+.fade-up-1 { animation: fadeUp 0.55s 0.1s ease both; }
+.fade-up-2 { animation: fadeUp 0.55s 0.2s ease both; }
+.fade-up-3 { animation: fadeUp 0.55s 0.35s ease both; }
+.fade-up-4 { animation: fadeUp 0.55s 0.5s ease both; }
+
+/* ─── Card hover lift ─────────────────────────────────────── */
+.card-hover {
+  transition: transform var(--transition), box-shadow var(--transition), border-color var(--transition);
+}
+.card-hover:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 20px 56px rgba(0, 0, 0, 0.55);
+  border-color: rgba(124, 111, 255, 0.30);
+}
+
+/* ─── Divider ─────────────────────────────────────────────── */
+.divider {
+  width: 100%;
+  height: 1px;
+  background: var(--glass-border);
+  margin: 8px 0;
+}
+
+/* ─── Scrollbar ───────────────────────────────────────────── */
+::-webkit-scrollbar { width: 6px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb {
+  background: rgba(124, 111, 255, 0.30);
+  border-radius: 999px;
+}
