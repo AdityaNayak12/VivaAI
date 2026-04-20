@@ -6,6 +6,6 @@ export const signup = (email, password) => createUserWithEmailAndPassword(auth, 
 export const signin = (email, password) => signInWithEmailAndPassword(auth, email, password);
 
 export const signInWithGoogle = () => {
-  const provider = new GoogleAuthProvider();
-  return signInWithPopup(auth, provider);
+    const provider = new GoogleAuthProvider();
+    return signInWithPopup(auth, provider);
 };
